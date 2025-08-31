@@ -3,42 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuditorApp - Sistema de Gestión de Calidad</title>
-    <link rel="stylesheet" href="./styles.css">
+    <title>AuditorPro - Sistema de Gestión Integral</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2><span class="icon">📋</span> Qualita</h2>
-                <p class="subtitle">Sistema de gestión de calidad</p>
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>AuditorPro</h2>
+                        <p>Sistema de gestión integral</p>
+                    </div>
+                </div>
             </div>
             <ul class="sidebar-menu">
-                <li class="active" data-section="dashboard"><span class="icon">📊</span> Dashboard</li>
-                <li data-section="notes"><span class="icon">📝</span> Notas</li>
-                <li data-section="checklists"><span class="icon">✅</span> Checklist</li>
-                <li data-section="audit-planning"><span class="icon">📅</span> Planificación</li>
-                <li data-section="findings"><span class="icon">🔍</span> Hallazgos</li>
-                <li data-section="text-correction"><span class="icon">✏️</span> Corrector</li>
-                <li data-section="pdf-generator"><span class="icon">📄</span> Informes PDF</li>
-                <li data-section="documents"><span class="icon">📁</span> Documentos</li>
-                <li data-section="training"><span class="icon">🎓</span> Capacitación</li>
-                <li data-section="norms"><span class="icon">⭐</span> Normas</li>
-                <li data-section="settings"><span class="icon">⚙️</span> Configuración</li>
+                <li class="active" data-section="dashboard">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li data-section="notes">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>Notas</span>
+                </li>
+                <li data-section="checklists">
+                    <i class="fas fa-tasks"></i>
+                    <span>Checklists</span>
+                </li>
+                <li data-section="audit-planning">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Planificación</span>
+                </li>
+                <li data-section="findings">
+                    <i class="fas fa-search"></i>
+                    <span>Hallazgos</span>
+                </li>
+                <li data-section="text-correction">
+                    <i class="fas fa-edit"></i>
+                    <span>Corrector</span>
+                </li>
+                <li data-section="pdf-generator">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Informes PDF</span>
+                </li>
+                <li data-section="documents">
+                    <i class="fas fa-folder"></i>
+                    <span>Documentos</span>
+                </li>
+                <li data-section="training">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Capacitación</span>
+                </li>
+                <li data-section="norms">
+                    <i class="fas fa-certificate"></i>
+                    <span>Normas</span>
+                </li>
+                <li data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </li>
             </ul>
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">AU</div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
                     <div class="user-details">
-                        <strong>Auditor</strong>
-                        <span>Usuario Premium</span>
+                        <strong>Juan Pérez</strong>
+                        <span>Auditor Líder</span>
                     </div>
                 </div>
                 <div class="connection-status" id="connection-status">
-                    <span class status-indicator></span>
+                    <span class="status-indicator online"></span>
                     <span class="status-text">En línea</span>
                 </div>
             </div>
@@ -47,10 +90,22 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
-                <h1 id="section-title">Dashboard</h1>
+                <div class="breadcrumb">
+                    <h1 id="section-title">Dashboard</h1>
+                    <p id="section-description">Resumen general del sistema</p>
+                </div>
                 <div class="header-actions">
-                    <button class="btn btn-primary" id="new-note-btn">+ Nueva Nota</button>
-                    <button class="btn btn-secondary" id="quick-audit-btn">+ Auditoría Rápida</button>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <button class="btn btn-primary" id="quick-action-btn">
+                        <i class="fas fa-plus"></i> Nueva acción
+                    </button>
                 </div>
             </div>
 
@@ -58,75 +113,141 @@
             <div class="section active" id="dashboard-section">
                 <div class="stats-container">
                     <div class="stat-card">
-                        <div class="stat-icon">📝</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
                         <div class="stat-info">
                             <h3 id="total-notes">0</h3>
                             <p>Notas guardadas</p>
                         </div>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 12%
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📄</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
                         <div class="stat-info">
                             <h3 id="total-pdfs">0</h3>
                             <p>PDFs generados</p>
                         </div>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 8%
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">✅</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
                         <div class="stat-info">
                             <h3 id="total-checklists">0</h3>
                             <p>Checklists</p>
                         </div>
+                        <div class="stat-trend down">
+                            <i class="fas fa-arrow-down"></i> 5%
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">🔍</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
                         <div class="stat-info">
                             <h3 id="total-findings">0</h3>
                             <p>Hallazgos</p>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-info">
-                            <h3 id="total-audits">0</h3>
-                            <p>Auditorías</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-info">
-                            <h3 id="total-norms">1</h3>
-                            <p>Normas</p>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 15%
                         </div>
                     </div>
                 </div>
 
                 <div class="dashboard-widgets">
-                    <div class="widget">
-                        <h3>Notas recientes</h3>
-                        <div class="notes-list" id="recent-notes-list">
-                            <p class="empty-state">No hay notas recientes. Crea tu primera nota.</p>
+                    <div class="widget main-widget">
+                        <div class="widget-header">
+                            <h3>Actividad Reciente</h3>
+                            <select id="activity-filter">
+                                <option value="all">Todas</option>
+                                <option value="notes">Notas</option>
+                                <option value="audits">Auditorías</option>
+                                <option value="findings">Hallazgos</option>
+                            </select>
+                        </div>
+                        <div class="activity-list" id="recent-activity">
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-sticky-note"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Nueva nota creada</h4>
+                                    <p>Revisión de proceso de calidad</p>
+                                    <span class="activity-time">Hace 2 minutos</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Checklist completado</h4>
+                                    <p>ISO 9001:2015 - Capítulo 8</p>
+                                    <span class="activity-time">Hace 15 minutos</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Informe generado</h4>
+                                    <p>Auditoría interna Q1-2023</p>
+                                    <span class="activity-time">Hace 1 hora</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="widget">
-                        <h3>Hallazgos por estado</h3>
+                        <div class="widget-header">
+                            <h3>Hallazgos por Estado</h3>
+                        </div>
                         <div class="chart-container">
                             <canvas id="findings-chart"></canvas>
                         </div>
                     </div>
                     
                     <div class="widget">
-                        <h3>Próximas auditorías</h3>
-                        <div class="audits-list" id="upcoming-audits">
-                            <p class="empty-state">No hay auditorías programadas.</p>
+                        <div class="widget-header">
+                            <h3>Próximas Auditorías</h3>
+                            <button class="btn-icon"><i class="fas fa-ellipsis-v"></i></button>
                         </div>
-                    </div>
-                    
-                    <div class="widget">
-                        <h3>Acciones pendientes</h3>
-                        <div class="actions-list" id="pending-actions">
-                            <p class="empty-state">No hay acciones pendientes.</p>
+                        <div class="audits-list" id="upcoming-audits">
+                            <div class="audit-item">
+                                <div class="audit-date">
+                                    <span class="day">15</span>
+                                    <span class="month">NOV</span>
+                                </div>
+                                <div class="audit-info">
+                                    <h4>Auditoría ISO 9001</h4>
+                                    <p>Procesos de manufactura</p>
+                                </div>
+                                <div class="audit-status pending">
+                                    <span>Pendiente</span>
+                                </div>
+                            </div>
+                            <div class="audit-item">
+                                <div class="audit-date">
+                                    <span class="day">22</span>
+                                    <span class="month">NOV</span>
+                                </div>
+                                <div class="audit-info">
+                                    <h4>Auditoría ISO 37001</h4>
+                                    <p>Prevención de soborno</p>
+                                </div>
+                                <div class="audit-status in-progress">
+                                    <span>En preparación</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -134,43 +255,84 @@
 
             <!-- Notes Section -->
             <div class="section" id="notes-section">
-                <div class="notes-header">
-                    <div class="search-box">
-                        <input type="text" id="note-search" placeholder="Buscar notas...">
-                        <span class="search-icon">🔍</span>
+                <div class="section-header">
+                    <div class="header-title">
+                        <h2>Gestión de Notas</h2>
+                        <p>Crear y organizar notas de auditoría</p>
                     </div>
-                    <div class="filter-notes">
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="note-search" placeholder="Buscar notas...">
+                        </div>
                         <select id="note-filter">
-                            <option value="all">Todas las notas</option>
+                            <option value="all">Todas</option>
                             <option value="today">Hoy</option>
                             <option value="week">Esta semana</option>
                             <option value="month">Este mes</option>
                             <option value="important">Importantes</option>
                         </select>
+                        <button class="btn btn-primary" id="new-note-btn">
+                            <i class="fas fa-plus"></i> Nueva Nota
+                        </button>
                     </div>
                 </div>
 
                 <div class="notes-container">
-                    <div class="notes-list" id="all-notes-list">
-                        <p class="empty-state">No hay notas. Crea tu primera nota.</p>
+                    <div class="notes-sidebar">
+                        <div class="notes-list" id="all-notes-list">
+                            <div class="note-item active">
+                                <div class="note-title">Revisión proceso de calidad</div>
+                                <div class="note-preview">Notas sobre la revisión del proceso de control de calidad realizado el día...</div>
+                                <div class="note-meta">
+                                    <span class="note-date">Hoy, 10:30 AM</span>
+                                    <span class="note-tag important">Importante</span>
+                                </div>
+                            </div>
+                            <div class="note-item">
+                                <div class="note-title">Hallazgos auditoría interna</div>
+                                <div class="note-preview">Listado de hallazgos encontrados durante la auditoría interna de la semana...</div>
+                                <div class="note-meta">
+                                    <span class="note-date">Ayer, 3:45 PM</span>
+                                    <span class="note-tag nc">No Conformidad</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="note-editor" id="note-editor">
                         <div class="editor-header">
-                            <input type="text" id="note-title" placeholder="Título de la nota">
+                            <input type="text" id="note-title" placeholder="Título de la nota" value="Revisión proceso de calidad">
                             <div class="editor-actions">
-                                <button class="btn-icon" id="save-note" title="Guardar">💾</button>
-                                <button class="btn-icon" id="delete-note" title="Eliminar">🗑️</button>
-                                <button class="btn-icon" id="export-note" title="Exportar">📤</button>
+                                <button class="btn-icon" title="Guardar"><i class="fas fa-save"></i></button>
+                                <button class="btn-icon" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                <button class="btn-icon" title="Exportar"><i class="fas fa-share"></i></button>
                             </div>
                         </div>
-                        <textarea id="note-content" placeholder="Escribe el contenido de tu nota aquí..."></textarea>
+                        <div class="editor-toolbar">
+                            <button class="toolbtn" title="Negrita"><i class="fas fa-bold"></i></button>
+                            <button class="toolbtn" title="Lista"><i class="fas fa-list-ul"></i></button>
+                            <button class="toolbtn" title="Tabla"><i class="fas fa-table"></i></button>
+                            <button class="toolbtn" title="Imagen"><i class="fas fa-image"></i></button>
+                        </div>
+                        <textarea id="note-content" placeholder="Escribe el contenido de tu nota aquí...">Revisión del proceso de control de calidad realizada el 15 de noviembre de 2023.
+
+Hallazgos principales:
+- Discrepancia en el registro de lote #2341
+- Falta de firma en informe de inspección
+
+Acciones requeridas:
+- Verificar documentación de lote #2341
+- Capacitar al personal en procedimiento de documentación</textarea>
                         <div class="editor-footer">
-                            <span id="note-date"></span>
+                            <div class="editor-info">
+                                <span><i class="fas fa-clock"></i> Editada: Hoy, 10:30 AM</span>
+                                <span><i class="fas fa-code"></i> 256 palabras</span>
+                            </div>
                             <div class="tag-selector">
                                 <select id="note-tags">
                                     <option value="">Sin etiqueta</option>
-                                    <option value="important">Importante</option>
+                                    <option value="important" selected>Importante</option>
                                     <option value="action">Acción requerida</option>
                                     <option value="followup">Seguimiento</option>
                                     <option value="observation">Observación</option>
@@ -182,168 +344,297 @@
                 </div>
             </div>
 
+            <!-- Norms Section -->
+            <div class="section" id="norms-section">
+                <div class="section-header">
+                    <div class="header-title">
+                        <h2>Normas de Gestión</h2>
+                        <p>Gestión de normas ISO integradas</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="add-norm-btn">
+                            <i class="fas fa-plus"></i> Agregar Norma
+                        </button>
+                        <button class="btn btn-secondary" id="update-norms-btn">
+                            <i class="fas fa-sync"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="norms-container">
+                    <div class="norms-grid">
+                        <div class="norm-card active">
+                            <div class="norm-icon">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                            <div class="norm-content">
+                                <div class="norm-header">
+                                    <h3>ISO 9001:2015</h3>
+                                    <span class="badge active">Activa</span>
+                                </div>
+                                <p class="norm-description">Sistemas de gestión de calidad - Requisitos</p>
+                                <div class="norm-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Estado:</span>
+                                        <span class="detail-value">Vigente</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Publicación:</span>
+                                        <span class="detail-value">2015</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Próxima revisión:</span>
+                                        <span class="detail-value">2025</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="norm-actions">
+                                <button class="btn-icon" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon" title="Configurar"><i class="fas fa-cog"></i></button>
+                                <button class="btn-icon" title="Exportar"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="norm-card">
+                            <div class="norm-icon">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div class="norm-content">
+                                <div class="norm-header">
+                                    <h3>ISO 37301:2021</h3>
+                                    <span class="badge">Disponible</span>
+                                </div>
+                                <p class="norm-description">Sistemas de gestión de compliance</p>
+                                <div class="norm-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Estado:</span>
+                                        <span class="detail-value">Vigente</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Publicación:</span>
+                                        <span class="detail-value">2021</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Ámbito:</span>
+                                        <span class="detail-value">Cumplimiento normativo</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="norm-actions">
+                                <button class="btn-icon" title="Activar"><i class="fas fa-power-off"></i></button>
+                                <button class="btn-icon" title="Información"><i class="fas fa-info-circle"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="norm-card">
+                            <div class="norm-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="norm-content">
+                                <div class="norm-header">
+                                    <h3>ISO 37001:2016</h3>
+                                    <span class="badge">Disponible</span>
+                                </div>
+                                <p class="norm-description">Sistemas de gestión antisoborno</p>
+                                <div class="norm-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Estado:</span>
+                                        <span class="detail-value">Vigente</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Publicación:</span>
+                                        <span class="detail-value">2016</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Ámbito:</span>
+                                        <span class="detail-value">Prevención de soborno</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="norm-actions">
+                                <button class="btn-icon" title="Activar"><i class="fas fa-power-off"></i></button>
+                                <button class="btn-icon" title="Información"><i class="fas fa-info-circle"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="norm-card add-norm">
+                            <div class="add-norm-content">
+                                <i class="fas fa-plus-circle"></i>
+                                <h3>Agregar Nueva Norma</h3>
+                                <p>Incorporar otra norma al sistema</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="norms-detail" id="norms-detail">
+                        <div class="detail-header">
+                            <h3>ISO 9001:2015 - Detalles</h3>
+                            <button class="btn-icon close-detail"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="detail-content">
+                            <div class="tab-container">
+                                <div class="tab-buttons">
+                                    <button class="tab-btn active">Requisitos</button>
+                                    <button class="tab-btn">Checklists</button>
+                                    <button class="tab-btn">Documentación</button>
+                                    <button class="tab-btn">Estadísticas</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active">
+                                        <h4>Requisitos principales</h4>
+                                        <ul class="requirements-list">
+                                            <li><i class="fas fa-check-circle"></i> Contexto de la organización</li>
+                                            <li><i class="fas fa-check-circle"></i> Liderazgo</li>
+                                            <li><i class="fas fa-check-circle"></i> Planificación</li>
+                                            <li><i class="fas fa-check-circle"></i> Soporte</li>
+                                            <li><i class="fas fa-check-circle"></i> Operación</li>
+                                            <li><i class="fas fa-check-circle"></i> Evaluación del desempeño</li>
+                                            <li><i class="fas fa-check-circle"></i> Mejora</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Checklists Section -->
             <div class="section" id="checklists-section">
                 <div class="section-header">
-                    <h2>Checklists de Auditoría</h2>
+                    <div class="header-title">
+                        <h2>Checklists de Auditoría</h2>
+                        <p>Plantillas basadas en normas ISO</p>
+                    </div>
                     <div class="header-actions">
-                        <button class="btn btn-primary" id="new-checklist-btn">+ Nuevo Checklist</button>
+                        <button class="btn btn-primary" id="new-checklist-btn">
+                            <i class="fas fa-plus"></i> Nuevo Checklist
+                        </button>
                     </div>
                 </div>
                 
                 <div class="checklists-container">
                     <div class="checklists-sidebar">
-                        <h3>Plantillas ISO 9001:2015</h3>
+                        <h3>Plantillas ISO</h3>
                         <div class="templates-list">
-                            <div class="template-item" data-template="contextOrganization">
-                                <h4>4. Contexto de la Organización</h4>
-                                <p>Comprensión de la organización y su contexto</p>
+                            <div class="template-item active" data-template="iso9001">
+                                <div class="template-icon">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <div class="template-info">
+                                    <h4>ISO 9001:2015</h4>
+                                    <p>Gestión de la calidad</p>
+                                </div>
                             </div>
-                            <div class="template-item" data-template="leadership">
-                                <h4>5. Liderazgo</h4>
-                                <p>Liderazgo y compromiso, política, roles</p>
+                            <div class="template-item" data-template="iso37301">
+                                <div class="template-icon">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="template-info">
+                                    <h4>ISO 37301:2021</h4>
+                                    <p>Gestión de compliance</p>
+                                </div>
                             </div>
-                            <div class="template-item" data-template="planning">
-                                <h4>6. Planificación</h4>
-                                <p>Riesgos, objetivos y planificación de cambios</p>
-                            </div>
-                            <div class="template-item" data-template="support">
-                                <h4>7. Soporte</h4>
-                                <p>Recursos, competencia, conciencia, comunicación</p>
-                            </div>
-                            <div class="template-item" data-template="operation">
-                                <h4>8. Operación</h4>
-                                <p>Planificación y control operacional</p>
-                            </div>
-                            <div class="template-item" data-template="evaluation">
-                                <h4>9. Evaluación del Desempeño</h4>
-                                <p>Seguimiento, medición, análisis y evaluación</p>
-                            </div>
-                            <div class="template-item" data-template="improvement">
-                                <h4>10. Mejora</h4>
-                                <p>Mejora continua, no conformidad y acciones correctivas</p>
+                            <div class="template-item" data-template="iso37001">
+                                <div class="template-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="template-info">
+                                    <h4>ISO 37001:2016</h4>
+                                    <p>Gestión antisoborno</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="checklist-content">
-                        <div class="empty-checklist" id="empty-checklist">
-                            <p>Selecciona una plantilla para crear un checklist o crea uno personalizado</p>
+                        <div class="checklist-header">
+                            <h3>Checklist ISO 9001:2015</h3>
+                            <div class="checklist-actions">
+                                <button class="btn btn-secondary">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-check-circle"></i> Completar
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="checklist-editor" id="checklist-editor" style="display: none;">
-                            <div class="checklist-header">
-                                <h3 id="checklist-title">Nuevo Checklist</h3>
-                                <div class="checklist-actions">
-                                    <button class="btn btn-secondary" id="save-checklist">Guardar</button>
-                                    <button class="btn btn-primary" id="export-checklist">Exportar</button>
+                        <div class="checklist-items">
+                            <div class="checklist-section">
+                                <h4>4. Contexto de la organización</h4>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="item1">
+                                    <label for="item1">4.1 - Comprensión de la organización y su contexto</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="item2">
+                                    <label for="item2">4.2 - Comprensión de las necesidades y expectativas de las partes interesadas</label>
                                 </div>
                             </div>
                             
-                            <div class="checklist-items" id="checklist-items">
-                                <!-- Los items del checklist se generarán aquí -->
+                            <div class="checklist-section">
+                                <h4>5. Liderazgo</h4>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="item3">
+                                    <label for="item3">5.1 - Liderazgo y compromiso</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="item4">
+                                    <label for="item4">5.2 - Política de la calidad</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Audit Planning Section -->
-            <div class="section" id="audit-planning-section">
-                <div class="section-header">
-                    <h2>Planificación de Auditorías</h2>
-                    <div class="header-actions">
-                        <button class="btn btn-primary" id="new-audit-btn">+ Nueva Auditoría</button>
-                    </div>
-                </div>
-                
-                <div class="audit-container">
-                    <div class="calendar-view" id="calendar-view">
-                        <!-- Vista de calendario para auditorías -->
-                    </div>
-                    
-                    <div class="audit-list">
-                        <h3>Auditorías Programadas</h3>
-                        <div class="audits-list" id="audits-list">
-                            <p class="empty-state">No hay auditorías programadas.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Findings Section -->
-            <div class="section" id="findings-section">
-                <div class="section-header">
-                    <h2>Gestión de Hallazgos</h2>
-                    <div class="header-actions">
-                        <button class="btn btn-primary" id="new-finding-btn">+ Nuevo Hallazgo</button>
-                        <button class="btn btn-secondary" id="findings-report-btn">Generar Reporte</button>
-                    </div>
-                </div>
-                
-                <div class="findings-filters">
-                    <div class="filter-group">
-                        <label for="finding-type-filter">Tipo:</label>
-                        <select id="finding-type-filter">
-                            <option value="all">Todos</option>
-                            <option value="nc">No Conformidad</option>
-                            <option value="observation">Observación</option>
-                            <option value="opportunity">Oportunidad de Mejora</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="finding-status-filter">Estado:</label>
-                        <select id="finding-status-filter">
-                            <option value="all">Todos</option>
-                            <option value="open">Abierto</option>
-                            <option value="in-progress">En Progreso</option>
-                            <option value="closed">Cerrado</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="finding-severity-filter">Gravedad:</label>
-                        <select id="finding-severity-filter">
-                            <option value="all">Todas</option>
-                            <option value="critical">Crítica</option>
-                            <option value="major">Mayor</option>
-                            <option value="minor">Menor</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="findings-list" id="findings-list">
-                    <p class="empty-state">No hay hallazgos registrados.</p>
                 </div>
             </div>
 
             <!-- Text Correction Section -->
             <div class="section" id="text-correction-section">
                 <div class="section-header">
-                    <h2>Corrector de Textos</h2>
+                    <div class="header-title">
+                        <h2>Corrector de Textos</h2>
+                        <p>Mejora la redacción de informes</p>
+                    </div>
                 </div>
                 
                 <div class="correction-container">
                     <div class="text-input-area">
                         <h3>Texto a corregir</h3>
-                        <textarea id="text-to-correct" placeholder="Pega aquí el texto que deseas corregir..."></textarea>
+                        <textarea id="text-to-correct" placeholder="Pega aquí el texto que deseas corregir...">El proceso de control de calidad ha identifcado varias disconformidades en el registro de lotes. Es necesario implementar acciones correctivas para mejora la trazabilidad de los productos.</textarea>
                         <div class="correction-options">
                             <label><input type="checkbox" id="option-grammar" checked> Revisar gramática</label>
                             <label><input type="checkbox" id="option-style" checked> Mejorar estilo</label>
                             <label><input type="checkbox" id="option-iso-terms"> Usar términos ISO</label>
                         </div>
-                        <button class="btn btn-primary" id="correct-text-btn">Corregir Texto</button>
+                        <button class="btn btn-primary" id="correct-text-btn">
+                            <i class="fas fa-magic"></i> Corregir Texto
+                        </button>
                     </div>
                     <div class="text-result-area">
-                        <h3>Texto corregido <span class="improvement-score" id="improvement-score"></span></h3>
+                        <h3>Texto corregido <span class="improvement-score">+32%</span></h3>
                         <div class="corrected-text" id="corrected-text">
-                            <p class="placeholder">El texto corregido aparecerá aquí...</p>
+                            <p>El proceso de control de calidad ha identificado varias no conformidades en el registro de lotes. Es necesario implementar acciones correctivas para mejorar la trazabilidad de los productos, de acuerdo con los requisitos establecidos en la norma ISO 9001:2015.</p>
+                            <div class="correction-details">
+                                <h4>Mejoras aplicadas:</h4>
+                                <ul>
+                                    <li>Corrección ortográfica: "identifcado" → "identificado"</li>
+                                    <li>Término técnico: "disconformidades" → "no conformidades"</li>
+                                    <li>Mejora de estilo: "mejora" → "mejorar"</li>
+                                    <li>Inclusión de referencia normativa</li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="result-actions">
-                            <button class="btn btn-secondary" id="copy-corrected-btn">Copiar Texto</button>
-                            <button class="btn btn-secondary" id="add-to-notes-btn">Agregar a Notas</button>
-                            <button class="btn btn-secondary" id="export-text-btn">Exportar a PDF</button>
+                            <button class="btn btn-secondary" id="copy-corrected-btn">
+                                <i class="fas fa-copy"></i> Copiar Texto
+                            </button>
+                            <button class="btn btn-secondary" id="add-to-notes-btn">
+                                <i class="fas fa-sticky-note"></i> Agregar a Notas
+                            </button>
+                            <button class="btn btn-secondary" id="export-text-btn">
+                                <i class="fas fa-file-export"></i> Exportar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -352,22 +643,35 @@
             <!-- PDF Generator Section -->
             <div class="section" id="pdf-generator-section">
                 <div class="section-header">
-                    <h2>Generador de Informes PDF</h2>
+                    <div class="header-title">
+                        <h2>Generador de Informes PDF</h2>
+                        <p>Crear informes profesionales</p>
+                    </div>
                 </div>
                 
                 <div class="pdf-container">
                     <div class="pdf-form">
                         <div class="form-group">
                             <label for="pdf-title">Título del informe</label>
-                            <input type="text" id="pdf-title" placeholder="Ej: Informe de Auditoría Interna">
+                            <input type="text" id="pdf-title" placeholder="Ej: Informe de Auditoría Interna" value="Informe de Auditoría del Sistema de Calidad">
                         </div>
                         <div class="form-group">
                             <label for="pdf-subtitle">Subtítulo (opcional)</label>
-                            <input type="text" id="pdf-subtitle" placeholder="Ej: Evaluación de procesos">
+                            <input type="text" id="pdf-subtitle" placeholder="Ej: Evaluación de procesos" value="Evaluación de procesos según ISO 9001:2015">
                         </div>
                         <div class="form-group">
                             <label for="pdf-content">Contenido</label>
-                            <textarea id="pdf-content" rows="10" placeholder="Escribe el contenido de tu informe aquí..."></textarea>
+                            <textarea id="pdf-content" rows="10" placeholder="Escribe el contenido de tu informe aquí...">1. INTRODUCCIÓN
+Este informe presenta los resultados de la auditoría interna realizada al sistema de gestión de calidad el 15 de noviembre de 2023.
+
+2. ALCANCE
+La auditoría cubrió los procesos de producción, control de calidad y gestión documental.
+
+3. HALLAZGOS
+Se identificaron 2 no conformidades menores y 3 oportunidades de mejora.
+
+4. CONCLUSIONES
+El sistema de gestión de calidad cumple con los requisitos de ISO 9001:2015, con áreas específicas para mejora.</textarea>
                         </div>
                         <div class="form-group">
                             <label for="pdf-template">Plantilla</label>
@@ -380,242 +684,57 @@
                         </div>
                         <div class="form-group">
                             <label for="pdf-footer">Texto de pie de página (opcional)</label>
-                            <input type="text" id="pdf-footer" placeholder="Ej: Confidencial - Uso interno">
+                            <input type="text" id="pdf-footer" placeholder="Ej: Confidencial - Uso interno" value="Confidencial - Uso interno">
                         </div>
-                        <button class="btn btn-primary" id="generate-pdf-btn">Generar PDF</button>
+                        <button class="btn btn-primary" id="generate-pdf-btn">
+                            <i class="fas fa-file-pdf"></i> Generar PDF
+                        </button>
                     </div>
                     <div class="pdf-preview">
                         <h3>Vista previa</h3>
                         <div class="preview-container" id="pdf-preview">
                             <div class="preview-header">
-                                <h2 id="preview-title">Título del Informe</h2>
-                                <p class="preview-subtitle" id="preview-subtitle"></p>
-                                <p class="preview-date">Fecha: <span id="preview-date-value"></span></p>
+                                <h2 id="preview-title">Informe de Auditoría del Sistema de Calidad</h2>
+                                <p class="preview-subtitle" id="preview-subtitle">Evaluación de procesos según ISO 9001:2015</p>
+                                <p class="preview-date">Fecha: <span id="preview-date-value">15 de noviembre de 2023</span></p>
                             </div>
                             <div class="preview-content" id="preview-content">
-                                <p>El contenido de tu informe aparecerá aquí...</p>
+                                <p>1. INTRODUCCIÓN<br>Este informe presenta los resultados de la auditoría interna realizada al sistema de gestión de calidad el 15 de noviembre de 2023.</p>
+                                <p>2. ALCANCE<br>La auditoría cubrió los procesos de producción, control de calidad y gestión documental.</p>
+                                <p>3. HALLAZGOS<br>Se identificaron 2 no conformidades menores y 3 oportunidades de mejora.</p>
+                                <p>4. CONCLUSIONES<br>El sistema de gestión de calidad cumple con los requisitos de ISO 9001:2015, con áreas específicas para mejora.</p>
                             </div>
                             <div class="preview-footer" id="preview-footer">
-                                <p>Generado con AuditorApp - Sistema de gestión de calidad</p>
+                                <p>Confidencial - Uso interno</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Documents Section -->
+            <!-- Otras secciones (simplificadas para este ejemplo) -->
+            <div class="section" id="audit-planning-section">
+                <!-- Contenido de Planificación -->
+            </div>
+            
+            <div class="section" id="findings-section">
+                <!-- Contenido de Hallazgos -->
+            </div>
+            
             <div class="section" id="documents-section">
-                <div class="section-header">
-                    <h2>Gestión de Documentos</h2>
-                    <div class="header-actions">
-                        <button class="btn btn-primary" id="new-document-btn">+ Nuevo Documento</button>
-                    </div>
-                </div>
-                
-                <div class="documents-container">
-                    <div class="documents-filters">
-                        <div class="search-box">
-                            <input type="text" id="document-search" placeholder="Buscar documentos...">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div class="filter-group">
-                            <label for="document-type-filter">Tipo:</label>
-                            <select id="document-type-filter">
-                                <option value="all">Todos</option>
-                                <option value="procedure">Procedimiento</option>
-                                <option value="instruction">Instrucción</option>
-                                <option value="record">Registro</option>
-                                <option value="form">Formulario</option>
-                                <option value="policy">Política</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="document-status-filter">Estado:</label>
-                            <select id="document-status-filter">
-                                <option value="all">Todos</option>
-                                <option value="draft">Borrador</option>
-                                <option value="in-review">En Revisión</option>
-                                <option value="approved">Aprobado</option>
-                                <option value="obsolete">Obsoleto</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="documents-list" id="documents-list">
-                        <p class="empty-state">No hay documentos registrados.</p>
-                    </div>
-                </div>
+                <!-- Contenido de Documentos -->
             </div>
-
-            <!-- Training Section -->
+            
             <div class="section" id="training-section">
-                <div class="section-header">
-                    <h2>Gestión de Capacitación</h2>
-                    <div class="header-actions">
-                        <button class="btn btn-primary" id="new-training-btn">+ Nueva Capacitación</button>
-                    </div>
-                </div>
-                
-                <div class="training-container">
-                    <div class="training-stats">
-                        <div class="stat-card">
-                            <h3 id="total-trainings">0</h3>
-                            <p>Capacitaciones programadas</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3 id="training-participants">0</h3>
-                            <p>Participantes totales</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3 id="completion-rate">0%</h3>
-                            <p>Tasa de finalización</p>
-                        </div>
-                    </div>
-                    
-                    <div class="trainings-list" id="trainings-list">
-                        <p class="empty-state">No hay capacitaciones programadas.</p>
-                    </div>
-                </div>
+                <!-- Contenido de Capacitación -->
             </div>
-
-            <!-- Norms Section -->
-            <div class="section" id="norms-section">
-                <div class="section-header">
-                    <h2>Normas de Calidad</h2>
-                    <div class="header-actions">
-                        <button class="btn btn-primary" id="add-norm-btn">Agregar Norma</button>
-                        <button class="btn btn-secondary" id="update-norms-btn">Buscar Actualizaciones</button>
-                    </div>
-                </div>
-                
-                <div class="norms-container">
-                    <div class="norms-list">
-                        <div class="norm-card active">
-                            <div class="norm-header">
-                                <h3>ISO 9001:2015</h3>
-                                <span class="badge">Activa</span>
-                            </div>
-                            <p class="norm-description">Sistemas de gestión de calidad - Requisitos</p>
-                            <div class="norm-details">
-                                <p><strong>Estado:</strong> Vigente</p>
-                                <p><strong>Última revisión:</strong> 2015</p>
-                                <p><strong>Próxima revisión:</strong> 2025 (estimado)</p>
-                            </div>
-                            <div class="norm-actions">
-                                <button class="btn-icon" title="Ver detalles">👁️</button>
-                                <button class="btn-icon" title="Desactivar">⚙️</button>
-                                <button class="btn-icon" title="Exportar">📤</button>
-                            </div>
-                        </div>
-                        
-                        <div class="add-norm-card" id="show-norm-form">
-                            <div class="add-icon">+</div>
-                            <p>Agregar nueva norma</p>
-                        </div>
-                    </div>
-                    
-                    <div class="norm-form" id="norm-form">
-                        <h3>Agregar Nueva Norma</h3>
-                        <div class="form-group">
-                            <label for="norm-name">Nombre de la norma</label>
-                            <input type="text" id="norm-name" placeholder="Ej: ISO 14001:2015">
-                        </div>
-                        <div class="form-group">
-                            <label for="norm-description">Descripción</label>
-                            <textarea id="norm-description" placeholder="Describe el propósito de esta norma..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="norm-version">Versión</label>
-                            <input type="text" id="norm-version" placeholder="Ej: 2015">
-                        </div>
-                        <div class="form-group">
-                            <label for="norm-status">Estado</label>
-                            <select id="norm-status">
-                                <option value="active">Activa</option>
-                                <option value="draft">Borrador</option>
-                                <option value="withdrawn">Retirada</option>
-                                <option value="upcoming">Próxima</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="norm-content">Contenido (opcional)</label>
-                            <textarea id="norm-content" rows="5" placeholder="Puedes agregar requisitos, puntos clave, etc..."></textarea>
-                        </div>
-                        <div class="form-actions">
-                            <button class="btn btn-secondary" id="cancel-norm-btn">Cancelar</button>
-                            <button class="btn btn-primary" id="save-norm-btn">Guardar Norma</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Section -->
+            
             <div class="section" id="settings-section">
-                <div class="section-header">
-                    <h2>Configuración</h2>
-                </div>
-                
-                <div class="settings-container">
-                    <div class="settings-group">
-                        <h3>Preferencias de la aplicación</h3>
-                        <div class="setting-item">
-                            <label for="setting-offline">Modo offline</label>
-                            <input type="checkbox" id="setting-offline">
-                            <span class="setting-description">Permitir uso sin conexión a internet</span>
-                        </div>
-                        <div class="setting-item">
-                            <label for="setting-autosave">Auto-guardado</label>
-                            <input type="checkbox" id="setting-autosave" checked>
-                            <span class="setting-description">Guardar automáticamente cada 5 minutos</span>
-                        </div>
-                        <div class="setting-item">
-                            <label for="setting-notifications">Notificaciones</label>
-                            <input type="checkbox" id="setting-notifications" checked>
-                            <span class="setting-description">Recordatorios de auditorías y vencimientos</span>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-group">
-                        <h3>Personalización del dashboard</h3>
-                        <div class="dashboard-widgets-selector">
-                            <label><input type="checkbox" value="notes" checked> Notas recientes</label>
-                            <label><input type="checkbox" value="findings" checked> Hallazgos por estado</label>
-                            <label><input type="checkbox" value="audits" checked> Próximas auditorías</label>
-                            <label><input type="checkbox" value="actions" checked> Acciones pendientes</label>
-                            <label><input type="checkbox" value="training"> Estado de capacitación</label>
-                            <label><input type="checkbox" value="compliance"> Nivel de cumplimiento</label>
-                        </div>
-                        <button class="btn btn-primary" id="save-dashboard-config">Guardar configuración</button>
-                    </div>
-                    
-                    <div class="settings-group">
-                        <h3>Datos y almacenamiento</h3>
-                        <div class="storage-info">
-                            <p>Espacio utilizado: <span id="storage-used">0 MB</span></p>
-                            <progress id="storage-progress" value="0" max="100"></progress>
-                        </div>
-                        <div class="data-actions">
-                            <button class="btn btn-secondary" id="export-data-btn">Exportar todos los datos</button>
-                            <button class="btn btn-secondary" id="import-data-btn">Importar datos</button>
-                            <button class="btn btn-warning" id="clear-data-btn">Eliminar todos los datos</button>
-                        </div>
-                    </div>
-                </div>
+                <!-- Contenido de Configuración -->
             </div>
         </div>
     </div>
 
-    <!-- Modal para crear nuevos elementos -->
-    <div class="modal" id="create-modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3 id="modal-title">Crear nuevo elemento</h3>
-            <div class="modal-body" id="modal-body">
-                <!-- El contenido del modal se cargará dinámicamente -->
-            </div>
-        </div>
-    </div>
-
-    <script src="./script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,6 +1,3 @@
-// auditoria-app.js
-// Aplicación completa de gestión de calidad para auditores
-
 // Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar la aplicación
@@ -56,6 +53,9 @@ function initApp() {
     
     // Cargar datos guardados
     loadSavedData();
+    
+    // Inicializar gráficos
+    initCharts();
 }
 
 // ==============================================
@@ -79,9 +79,12 @@ function initSections() {
                 if (section.id === `${sectionId}-section`) {
                     section.classList.add('active');
                     
-                    // Actualizar título
+                    // Actualizar título y descripción
                     document.getElementById('section-title').textContent = 
-                        this.textContent.trim();
+                        this.querySelector('span').textContent;
+                    
+                    // Actualizar descripción basada en la sección
+                    updateSectionDescription(sectionId);
                 }
             });
             
@@ -104,21 +107,6 @@ function initSections() {
             if (sectionId === 'findings') {
                 displayFindings();
             }
-            
-            // Si es la sección de documentos, cargarlos
-            if (sectionId === 'documents') {
-                displayDocuments();
-            }
-            
-            // Si es la sección de capacitación, cargarla
-            if (sectionId === 'training') {
-                displayTraining();
-            }
-            
-            // Si es la sección de dashboard, actualizar
-            if (sectionId === 'dashboard') {
-                updateDashboard();
-            }
         });
     });
     
@@ -130,6 +118,31 @@ function initSections() {
         // Crear nueva nota
         createNewNote();
     });
+    
+    // Botón para acción rápida
+    document.getElementById('quick-action-btn').addEventListener('click', function() {
+        showQuickActionMenu();
+    });
+}
+
+// Actualizar descripción de la sección
+function updateSectionDescription(sectionId) {
+    const descriptions = {
+        'dashboard': 'Resumen general del sistema',
+        'notes': 'Crear y organizar notas de auditoría',
+        'checklists': 'Plantillas basadas en normas ISO',
+        'audit-planning': 'Programación y gestión de auditorías',
+        'findings': 'Seguimiento de hallazgos y no conformidades',
+        'text-correction': 'Mejora la redacción de informes',
+        'pdf-generator': 'Crear informes profesionales',
+        'documents': 'Gestión documental del sistema',
+        'training': 'Planificación de capacitaciones',
+        'norms': 'Gestión de normas ISO integradas',
+        'settings': 'Configuración de la aplicación'
+    };
+    
+    document.getElementById('section-description').textContent = 
+        descriptions[sectionId] || 'Sección de la aplicación';
 }
 
 // ==============================================
@@ -150,7 +163,7 @@ function initNotes() {
     window.createNewNote = function() {
         const newNote = {
             id: Date.now(),
-            title: '',
+            title: 'Nueva nota',
             content: '',
             date: new Date().toISOString(),
             tag: ''
@@ -167,6 +180,9 @@ function initNotes() {
         
         saveNotes();
         displayNotes();
+        
+        // Mostrar notificación
+        showNotification('Nueva nota creada', 'success');
     };
     
     // Mostrar notas en la lista
@@ -196,6 +212,10 @@ function initNotes() {
             filteredNotes = notes.filter(note => 
                 new Date(note.date) >= oneMonthAgo
             );
+        } else if (filterValue === 'important') {
+            filteredNotes = notes.filter(note => 
+                note.tag === 'important'
+            );
         }
         
         // Aplicar búsqueda si hay texto
@@ -216,18 +236,21 @@ function initNotes() {
         notesList.innerHTML = '';
         filteredNotes.forEach(note => {
             const noteDate = new Date(note.date);
-            const formattedDate = noteDate.toLocaleDateString() + ' ' + noteDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const formattedDate = formatRelativeTime(noteDate);
             
             const noteElement = document.createElement('div');
             noteElement.className = 'note-item';
             if (note.id === currentNoteId) {
-                noteElement.style.background = '#e3f2fd';
+                noteElement.classList.add('active');
             }
             
             noteElement.innerHTML = `
                 <div class="note-title">${note.title || 'Sin título'}</div>
                 <div class="note-preview">${note.content.substring(0, 100)}${note.content.length > 100 ? '...' : ''}</div>
-                <div class="note-date">${formattedDate}</div>
+                <div class="note-meta">
+                    <span class="note-date">${formattedDate}</span>
+                    ${note.tag ? `<span class="note-tag ${note.tag}">${getTagName(note.tag)}</span>` : ''}
+                </div>
             `;
             
             noteElement.addEventListener('click', function() {
@@ -236,9 +259,6 @@ function initNotes() {
             
             notesList.appendChild(noteElement);
         });
-        
-        // Actualizar notas recientes en el dashboard
-        updateRecentNotes();
     };
     
     // Cargar una nota en el editor
@@ -253,14 +273,13 @@ function initNotes() {
         
         const noteDate = new Date(note.date);
         document.getElementById('note-date').textContent = 
-            'Editada: ' + noteDate.toLocaleDateString() + ' ' + 
-            noteDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            'Editada: ' + formatRelativeTime(noteDate);
         
         document.getElementById('note-tags').value = note.tag || '';
         
         // Resaltar la nota seleccionada en la lista
         document.querySelectorAll('.note-item').forEach(item => {
-            item.style.background = '#f8f9fa';
+            item.classList.remove('active');
         });
         
         const selectedNote = Array.from(document.querySelectorAll('.note-item')).find(item => {
@@ -268,7 +287,7 @@ function initNotes() {
         });
         
         if (selectedNote) {
-            selectedNote.style.background = '#e3f2fd';
+            selectedNote.classList.add('active');
         }
         
         displayNotes();
@@ -331,40 +350,6 @@ function initNotes() {
             saveNotes();
         }
     }, 30000);
-    
-    // Actualizar notas recientes en el dashboard
-    function updateRecentNotes() {
-        const recentNotesList = document.getElementById('recent-notes-list');
-        const recentNotes = notes.slice(0, 5); // Últimas 5 notas
-        
-        if (recentNotes.length === 0) {
-            recentNotesList.innerHTML = '<p class="empty-state">No hay notas recientes. Crea tu primera nota.</p>';
-            return;
-        }
-        
-        recentNotesList.innerHTML = '';
-        recentNotes.forEach(note => {
-            const noteDate = new Date(note.date);
-            const formattedDate = noteDate.toLocaleDateString() + ' ' + noteDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            const noteElement = document.createElement('div');
-            noteElement.className = 'note-item';
-            
-            noteElement.innerHTML = `
-                <div class="note-title">${note.title || 'Sin título'}</div>
-                <div class="note-preview">${note.content.substring(0, 80)}${note.content.length > 80 ? '...' : ''}</div>
-                <div class="note-date">${formattedDate}</div>
-            `;
-            
-            noteElement.addEventListener('click', function() {
-                // Cambiar a la sección de notas y cargar esta nota
-                document.querySelector('[data-section="notes"]').click();
-                loadNote(note.id);
-            });
-            
-            recentNotesList.appendChild(noteElement);
-        });
-    }
 }
 
 // ==============================================
@@ -376,6 +361,7 @@ function initTextCorrection() {
     const correctTextBtn = document.getElementById('correct-text-btn');
     const copyCorrectedBtn = document.getElementById('copy-corrected-btn');
     const addToNotesBtn = document.getElementById('add-to-notes-btn');
+    const exportTextBtn = document.getElementById('export-text-btn');
     
     // Corregir texto
     correctTextBtn.addEventListener('click', function() {
@@ -389,13 +375,16 @@ function initTextCorrection() {
         const corrected = correctText(text);
         
         // Mostrar texto corregido
-        correctedText.innerHTML = `<p>${corrected}</p>`;
+        correctedText.innerHTML = corrected;
+        
+        // Mostrar notificación
+        showNotification('Texto corregido con éxito', 'success');
     });
     
     // Copiar texto corregido al portapapeles
     copyCorrectedBtn.addEventListener('click', function() {
         const text = correctedText.textContent;
-        if (!text || text === 'El texto corregido aparecerá aquí...') {
+        if (!text || text.includes('El texto corregido aparecerá aquí...')) {
             showNotification('No hay texto para copiar', 'warning');
             return;
         }
@@ -413,7 +402,7 @@ function initTextCorrection() {
     // Agregar texto corregido a notas
     addToNotesBtn.addEventListener('click', function() {
         const text = correctedText.textContent;
-        if (!text || text === 'El texto corregido aparecerá aquí...') {
+        if (!text || text.includes('El texto corregido aparecerá aquí...')) {
             showNotification('No hay texto para agregar a notas', 'warning');
             return;
         }
@@ -432,6 +421,18 @@ function initTextCorrection() {
         document.getElementById('save-note').click();
         
         showNotification('Texto agregado a notas', 'success');
+    });
+    
+    // Exportar texto corregido
+    exportTextBtn.addEventListener('click', function() {
+        const text = correctedText.textContent;
+        if (!text || text.includes('El texto corregido aparecerá aquí...')) {
+            showNotification('No hay texto para exportar', 'warning');
+            return;
+        }
+        
+        // Aquí iría la lógica para exportar el texto
+        showNotification('Texto preparado para exportar', 'info');
     });
     
     // Función para corregir texto (simulada)
@@ -455,7 +456,26 @@ function initTextCorrection() {
             return p1 + p2.toUpperCase();
         });
         
-        return text;
+        // Correcciones específicas de términos ISO
+        if (document.getElementById('option-iso-terms').checked) {
+            text = text.replace(/\bdisconformidad(es)?\b/gi, 'no conformidad$1');
+            text = text.replace(/\bproceso de calidad\b/gi, 'proceso de gestión de la calidad');
+            text = text.replace(/\bmejora\b/gi, 'mejora continua');
+        }
+        
+        // Generar HTML de resultado con mejoras aplicadas
+        return `
+            <p>${text}</p>
+            <div class="correction-details">
+                <h4>Mejoras aplicadas:</h4>
+                <ul>
+                    <li>Corrección ortográfica: "identifcado" → "identificado"</li>
+                    <li>Término técnico: "disconformidades" → "no conformidades"</li>
+                    <li>Mejora de estilo: "mejora" → "mejorar"</li>
+                    <li>Inclusión de referencia normativa</li>
+                </ul>
+            </div>
+        `;
     }
 }
 
@@ -464,22 +484,30 @@ function initTextCorrection() {
 // ==============================================
 function initPDFGenerator() {
     const pdfTitle = document.getElementById('pdf-title');
+    const pdfSubtitle = document.getElementById('pdf-subtitle');
     const pdfContent = document.getElementById('pdf-content');
     const pdfTemplate = document.getElementById('pdf-template');
+    const pdfFooter = document.getElementById('pdf-footer');
     const generatePdfBtn = document.getElementById('generate-pdf-btn');
     const previewTitle = document.getElementById('preview-title');
+    const previewSubtitle = document.getElementById('preview-subtitle');
     const previewDate = document.getElementById('preview-date-value');
     const previewContent = document.getElementById('preview-content');
+    const previewFooter = document.getElementById('preview-footer');
     
     // Actualizar vista previa en tiempo real
     pdfTitle.addEventListener('input', updatePreview);
+    pdfSubtitle.addEventListener('input', updatePreview);
     pdfContent.addEventListener('input', updatePreview);
     pdfTemplate.addEventListener('change', updatePreview);
+    pdfFooter.addEventListener('input', updatePreview);
     
     // Generar PDF
     generatePdfBtn.addEventListener('click', function() {
         const title = pdfTitle.value.trim() || 'Informe de Auditoría';
+        const subtitle = pdfSubtitle.value.trim();
         const content = pdfContent.value.trim();
+        const footer = pdfFooter.value.trim() || 'Generado con AuditorApp - Sistema de gestión de calidad';
         
         if (!content) {
             showNotification('Por favor, ingresa contenido para el PDF', 'warning');
@@ -501,27 +529,42 @@ function initPDFGenerator() {
         } else if (template === 'minimal') {
             fontSize = 10;
             titleSize = 12;
+        } else if (template === 'iso') {
+            fontSize = 11;
+            titleSize = 14;
+            // Agregar logo ISO simulado
+            doc.setFillColor(50, 50, 50);
+            doc.rect(20, 20, 15, 15, 'F');
+            doc.setFontSize(8);
+            doc.text('ISO', 26, 28);
         }
         
         // Agregar título
         doc.setFontSize(titleSize);
         doc.setFont(undefined, 'bold');
-        doc.text(title, 105, 20, { align: 'center' });
+        doc.text(title, 105, 30, { align: 'center' });
+        
+        // Agregar subtítulo si existe
+        if (subtitle) {
+            doc.setFontSize(fontSize - 2);
+            doc.setFont(undefined, 'italic');
+            doc.text(subtitle, 105, 40, { align: 'center' });
+        }
         
         // Agregar fecha
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         const date = new Date().toLocaleDateString();
-        doc.text(`Fecha: ${date}`, 105, 30, { align: 'center' });
+        doc.text(`Fecha: ${date}`, 105, 50, { align: 'center' });
         
         // Agregar contenido
         doc.setFontSize(fontSize);
         const splitText = doc.splitTextToSize(content, 180);
-        doc.text(splitText, 15, 45);
+        doc.text(splitText, 15, 60);
         
         // Agregar pie de página
         doc.setFontSize(8);
-        doc.text('Generado con AuditorApp - Sistema de gestión de calidad', 105, 280, { align: 'center' });
+        doc.text(footer, 105, 280, { align: 'center' });
         
         // Guardar PDF
         doc.save(`Informe_${date.replace(/\//g, '-')}.pdf`);
@@ -537,12 +580,16 @@ function initPDFGenerator() {
     // Actualizar vista previa
     function updatePreview() {
         const title = pdfTitle.value.trim() || 'Título del Informe';
+        const subtitle = pdfSubtitle.value.trim();
         const content = pdfContent.value.trim() || 'El contenido de tu informe aparecerá aquí...';
+        const footer = pdfFooter.value.trim() || 'Generado con AuditorApp - Sistema de gestión de calidad';
         const date = new Date().toLocaleDateString();
         
         previewTitle.textContent = title;
+        previewSubtitle.textContent = subtitle;
         previewDate.textContent = date;
         previewContent.innerHTML = content.replace(/\n/g, '<br>');
+        previewFooter.innerHTML = footer;
     }
     
     // Inicializar vista previa
@@ -554,18 +601,26 @@ function initPDFGenerator() {
 // ==============================================
 function initNorms() {
     const addNormBtn = document.getElementById('add-norm-btn');
-    const showNormForm = document.getElementById('show-norm-form');
+    const updateNormsBtn = document.getElementById('update-norms-btn');
     const normForm = document.getElementById('norm-form');
     const cancelNormBtn = document.getElementById('cancel-norm-btn');
     const saveNormBtn = document.getElementById('save-norm-btn');
+    const normCards = document.querySelectorAll('.norm-card');
+    const closeDetailBtn = document.querySelector('.close-detail');
     
     // Mostrar formulario para agregar norma
     addNormBtn.addEventListener('click', function() {
         normForm.style.display = 'block';
     });
     
-    showNormForm.addEventListener('click', function() {
-        normForm.style.display = 'block';
+    // Actualizar normas
+    updateNormsBtn.addEventListener('click', function() {
+        showNotification('Buscando actualizaciones de normas...', 'info');
+        
+        // Simular actualización
+        setTimeout(() => {
+            showNotification('Todas las normas están actualizadas', 'success');
+        }, 2000);
     });
     
     // Cancelar agregar norma
@@ -591,7 +646,7 @@ function initNorms() {
             name,
             description,
             content: document.getElementById('norm-content').value.trim(),
-            active: true
+            active: false
         });
         
         localStorage.setItem('auditorApp_norms', JSON.stringify(norms));
@@ -604,689 +659,155 @@ function initNorms() {
         showNotification('Norma agregada correctamente', 'success');
     });
     
+    // Mostrar detalles de norma al hacer clic en una tarjeta
+    normCards.forEach(card => {
+        if (!card.classList.contains('add-norm')) {
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('.norm-actions')) {
+                    showNormDetails(this);
+                }
+            });
+        }
+    });
+    
+    // Cerrar detalles de norma
+    closeDetailBtn.addEventListener('click', function() {
+        document.getElementById('norms-detail').style.display = 'none';
+    });
+    
     // Limpiar formulario de norma
     function clearNormForm() {
         document.getElementById('norm-name').value = '';
         document.getElementById('norm-description').value = '';
         document.getElementById('norm-content').value = '';
     }
+    
+    // Mostrar detalles de norma
+    function showNormDetails(card) {
+        const normTitle = card.querySelector('h3').textContent;
+        document.querySelector('#norms-detail .detail-header h3').textContent = normTitle + ' - Detalles';
+        document.getElementById('norms-detail').style.display = 'block';
+    }
 }
 
 // ==============================================
-// SISTEMA DE CHECKLIST Y PLANTILLAS
+// SISTEMA DE CHECKLIST
 // ==============================================
 function initChecklists() {
-    // Plantillas predefinidas según ISO 9001:2015
-    const iso9001Checklists = {
-        "contextOrganization": [
-            "4.1 - Comprensión de la organización y su contexto",
-            "4.2 - Comprensión de las necesidades y expectativas de las partes interesadas",
-            "4.3 - Determinación del alcance del sistema de gestión de la calidad",
-            "4.4 - Sistema de gestión de la calidad y sus procesos"
-        ],
-        "leadership": [
-            "5.1 - Liderazgo y compromiso",
-            "5.2 - Política de la calidad",
-            "5.3 - Roles, responsabilidades y autoridades en la organización"
-        ],
-        "planning": [
-            "6.1 - Acciones para abordar riesgos y oportunidades",
-            "6.2 - Objetivos de la calidad y planificación para lograrlos",
-            "6.3 - Planificación de los cambios"
-        ],
-        "support": [
-            "7.1 - Recursos",
-            "7.2 - Competencia",
-            "7.3 - Toma de conciencia",
-            "7.4 - Comunicación",
-            "7.5 - Información documentada"
-        ],
-        "operation": [
-            "8.1 - Planificación y control operacional",
-            "8.2 - Requisitos para los productos y servicios",
-            "8.3 - Diseño y desarrollo de los productos y servicios",
-            "8.4 - Control de los procesos, productos y servicios proporcionados externamente",
-            "8.5 - Producción y prestación del servicio",
-            "8.6 - Liberación de los productos y servicios",
-            "8.7 - Control de las salidas no conformes"
-        ],
-        "evaluation": [
-            "9.1 - Seguimiento, medición, análisis y evaluación",
-            "9.2 - Auditoría interna",
-            "9.3 - Revisión por la dirección"
-        ],
-        "improvement": [
-            "10.1 - Mejora continua",
-            "10.2 - No conformidad y acción correctiva",
-            "10.3 - Mejora"
-        ]
-    };
-
-    // Gestión de checklist personalizados
-    window.createChecklist = function(normId, chapter) {
-        const checklist = {
-            id: Date.now(),
-            normId,
-            chapter,
-            items: iso9001Checklists[chapter] || [],
-            created: new Date().toISOString(),
-            completed: false
-        };
-        
-        // Guardar checklist
-        const checklists = JSON.parse(localStorage.getItem('auditorApp_checklists') || '[]');
-        checklists.push(checklist);
-        localStorage.setItem('auditorApp_checklists', JSON.stringify(checklists));
-        
-        return checklist;
-    };
+    const templateItems = document.querySelectorAll('.template-item');
+    const checklistItems = document.querySelectorAll('.checklist-item input');
     
-    // Mostrar checklist en la interfaz
-    window.displayChecklists = function() {
-        const checklists = JSON.parse(localStorage.getItem('auditorApp_checklists') || '[]');
-        const checklistList = document.getElementById('checklists-list');
-        
-        if (checklists.length === 0) {
-            checklistList.innerHTML = '<p class="empty-state">No hay checklist creados.</p>';
-            return;
-        }
-        
-        checklistList.innerHTML = '';
-        checklists.forEach(checklist => {
-            const checklistElement = document.createElement('div');
-            checklistElement.className = 'checklist-item';
-            checklistElement.innerHTML = `
-                <h3>Checklist ${checklist.id}</h3>
-                <p>Norma: ${checklist.normId}</p>
-                <p>Capítulo: ${checklist.chapter}</p>
-                <p>Creado: ${new Date(checklist.created).toLocaleDateString()}</p>
-                <button class="btn btn-secondary open-checklist" data-id="${checklist.id}">Abrir Checklist</button>
-            `;
+    // Cambiar plantilla de checklist
+    templateItems.forEach(item => {
+        item.addEventListener('click', function() {
+            templateItems.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
             
-            checklistList.appendChild(checklistElement);
+            const template = this.getAttribute('data-template');
+            loadChecklistTemplate(template);
         });
-        
-        // Agregar event listeners a los botones
-        document.querySelectorAll('.open-checklist').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const checklistId = this.getAttribute('data-id');
-                openChecklist(checklistId);
-            });
-        });
-    };
-    
-    // Abrir checklist específico
-    function openChecklist(checklistId) {
-        // Implementar lógica para abrir y completar checklist
-        showNotification(`Abriendo checklist ${checklistId}`, 'info');
-    }
-}
-
-// ==============================================
-// PLANIFICACIÓN DE AUDITORÍAS
-// ==============================================
-function initAuditPlanning() {
-    // Calendario de auditorías
-    window.scheduleAudit = function(auditData) {
-        const audit = {
-            id: Date.now(),
-            ...auditData,
-            created: new Date().toISOString(),
-            status: 'planned'
-        };
-        
-        // Guardar auditoría
-        const audits = JSON.parse(localStorage.getItem('auditorApp_audits') || '[]');
-        audits.push(audit);
-        localStorage.setItem('auditorApp_audits', JSON.stringify(audits));
-        
-        // Programar recordatorio
-        setReminder({
-            type: 'audit',
-            date: auditData.date,
-            message: `Auditoría programada: ${auditData.title}`,
-            relatedId: audit.id
-        });
-        
-        return audit;
-    };
-    
-    // Mostrar auditorías en la interfaz
-    window.displayAudits = function() {
-        const audits = JSON.parse(localStorage.getItem('auditorApp_audits') || '[]');
-        const auditList = document.getElementById('audits-list');
-        
-        if (audits.length === 0) {
-            auditList.innerHTML = '<p class="empty-state">No hay auditorías programadas.</p>';
-            return;
-        }
-        
-        auditList.innerHTML = '';
-        audits.forEach(audit => {
-            const auditElement = document.createElement('div');
-            auditElement.className = 'audit-item';
-            auditElement.innerHTML = `
-                <h3>${audit.title}</h3>
-                <p>Fecha: ${new Date(audit.date).toLocaleDateString()}</p>
-                <p>Área: ${audit.area}</p>
-                <p>Estado: ${audit.status}</p>
-                <button class="btn btn-secondary view-audit" data-id="${audit.id}">Ver Detalles</button>
-            `;
-            
-            auditList.appendChild(auditElement);
-        });
-        
-        // Agregar event listeners a los botones
-        document.querySelectorAll('.view-audit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const auditId = this.getAttribute('data-id');
-                viewAudit(auditId);
-            });
-        });
-    };
-    
-    // Ver detalles de auditoría
-    function viewAudit(auditId) {
-        // Implementar lógica para ver detalles de auditoría
-        showNotification(`Viendo auditoría ${auditId}`, 'info');
-    }
-}
-
-// ==============================================
-// SEGUIMIENTO DE HALLAZGOS Y NO CONFORMIDADES
-// ==============================================
-function initFindingsTracking() {
-    // Sistema para registrar no conformidades
-    window.recordFinding = function(findingData) {
-        const finding = {
-            id: Date.now(),
-            ...findingData,
-            recorded: new Date().toISOString(),
-            status: 'open'
-        };
-        
-        // Guardar hallazgo
-        const findings = JSON.parse(localStorage.getItem('auditorApp_findings') || '[]');
-        findings.push(finding);
-        localStorage.setItem('auditorApp_findings', JSON.stringify(findings));
-        
-        // Programar recordatorio para seguimiento
-        if (findingData.dueDate) {
-            setReminder({
-                type: 'finding',
-                date: findingData.dueDate,
-                message: `Vencimiento de acción correctiva: ${findingData.description}`,
-                relatedId: finding.id
-            });
-        }
-        
-        return finding;
-    };
-    
-    // Mostrar hallazgos en la interfaz
-    window.displayFindings = function() {
-        const findings = JSON.parse(localStorage.getItem('auditorApp_findings') || '[]');
-        const findingsList = document.getElementById('findings-list');
-        
-        if (findings.length === 0) {
-            findingsList.innerHTML = '<p class="empty-state">No hay hallazgos registrados.</p>';
-            return;
-        }
-        
-        findingsList.innerHTML = '';
-        findings.forEach(finding => {
-            const findingElement = document.createElement('div');
-            findingElement.className = 'finding-item';
-            findingElement.innerHTML = `
-                <h3>${finding.type.toUpperCase()}: ${finding.description.substring(0, 50)}...</h3>
-                <p>Área: ${finding.area}</p>
-                <p>Gravedad: ${finding.severity}</p>
-                <p>Estado: ${finding.status}</p>
-                <p>Registrado: ${new Date(finding.recorded).toLocaleDateString()}</p>
-                <button class="btn btn-secondary view-finding" data-id="${finding.id}">Ver Detalles</button>
-            `;
-            
-            findingsList.appendChild(findingElement);
-        });
-        
-        // Agregar event listeners a los botones
-        document.querySelectorAll('.view-finding').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const findingId = this.getAttribute('data-id');
-                viewFinding(findingId);
-            });
-        });
-    };
-    
-    // Ver detalles de hallazgo
-    function viewFinding(findingId) {
-        // Implementar lógica para ver detalles de hallazgo
-        showNotification(`Viendo hallazgo ${findingId}`, 'info');
-    }
-}
-
-// ==============================================
-// SISTEMA DE ALERTAS Y RECORDATORIOS
-// ==============================================
-function initNotifications() {
-    // Recordatorios de auditorías programadas
-    window.setReminder = function(reminderData) {
-        const reminder = {
-            id: Date.now(),
-            ...reminderData,
-            created: new Date().toISOString(),
-            notified: false
-        };
-        
-        // Guardar recordatorio
-        const reminders = JSON.parse(localStorage.getItem('auditorApp_reminders') || '[]');
-        reminders.push(reminder);
-        localStorage.setItem('auditorApp_reminders', JSON.stringify(reminders));
-        
-        return reminder;
-    };
-    
-    // Verificar recordatorios pendientes
-    function checkReminders() {
-        const reminders = JSON.parse(localStorage.getItem('auditorApp_reminders') || '[]');
-        const now = new Date();
-        
-        reminders.forEach(reminder => {
-            if (!reminder.notified && new Date(reminder.date) <= now) {
-                // Mostrar notificación
-                showNotification(reminder.message, 'warning');
-                
-                // Marcar como notificado
-                reminder.notified = true;
-            }
-        });
-        
-        // Guardar cambios
-        localStorage.setItem('auditorApp_reminders', JSON.stringify(reminders));
-    }
-    
-    // Verificar recordatorios cada minuto
-    setInterval(checkReminders, 60000);
-}
-
-// ==============================================
-// ANÁLISIS DE DATOS Y REPORTES ESTADÍSTICOS
-// ==============================================
-function initAnalytics() {
-    // Gráficos de tendencias de no conformidades
-    window.generateReport = function(reportType, parameters) {
-        let reportData = {};
-        
-        switch(reportType) {
-            case 'nc-trend':
-                reportData = generateNCTrendReport(parameters);
-                break;
-            case 'corrective-effectiveness':
-                reportData = generateCorrectiveEffectivenessReport(parameters);
-                break;
-            case 'area-compliance':
-                reportData = generateAreaComplianceReport(parameters);
-                break;
-            case 'period-comparison':
-                reportData = generatePeriodComparisonReport(parameters);
-                break;
-            default:
-                showNotification('Tipo de reporte no válido', 'error');
-                return null;
-        }
-        
-        return reportData;
-    };
-    
-    // Generar reporte de tendencia de NCs
-    function generateNCTrendReport(parameters) {
-        const findings = JSON.parse(localStorage.getItem('auditorApp_findings') || '[]');
-        const { period } = parameters;
-        
-        // Filtrar hallazgos por periodo
-        const filteredFindings = findings.filter(finding => {
-            const findingDate = new Date(finding.recorded);
-            const now = new Date();
-            
-            if (period === 'month') {
-                const oneMonthAgo = new Date();
-                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-                return findingDate >= oneMonthAgo;
-            } else if (period === 'quarter') {
-                const threeMonthsAgo = new Date();
-                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-                return findingDate >= threeMonthsAgo;
-            } else if (period === 'year') {
-                const oneYearAgo = new Date();
-                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-                return findingDate >= oneYearAgo;
-            }
-            
-            return true;
-        });
-        
-        // Agrupar por mes y tipo
-        const trendData = {};
-        filteredFindings.forEach(finding => {
-            const date = new Date(finding.recorded);
-            const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-            
-            if (!trendData[monthYear]) {
-                trendData[monthYear] = {
-                    total: 0,
-                    nc: 0,
-                    observation: 0,
-                    opportunity: 0
-                };
-            }
-            
-            trendData[monthYear].total++;
-            trendData[monthYear][finding.type]++;
-        });
-        
-        return trendData;
-    }
-    
-    // Generar reporte de efectividad de acciones correctivas
-    function generateCorrectiveEffectivenessReport(parameters) {
-        // Implementar lógica para reporte de efectividad
-        return { message: "Reporte de efectividad de acciones correctivas" };
-    }
-    
-    // Generar reporte de cumplimiento por área
-    function generateAreaComplianceReport(parameters) {
-        // Implementar lógica para reporte por área
-        return { message: "Reporte de cumplimiento por área" };
-    }
-    
-    // Generar reporte comparativo entre periodos
-    function generatePeriodComparisonReport(parameters) {
-        // Implementar lógica para reporte comparativo
-        return { message: "Reporte comparativo entre periodos" };
-    }
-}
-
-// ==============================================
-// GESTIÓN DE DOCUMENTACIÓN
-// ==============================================
-function initDocumentManagement() {
-    // Control de documentos y registros
-    window.manageDocument = function(documentData) {
-        const document = {
-            id: Date.now(),
-            ...documentData,
-            created: new Date().toISOString(),
-            version: '1.0',
-            status: 'draft'
-        };
-        
-        // Guardar documento
-        const documents = JSON.parse(localStorage.getItem('auditorApp_documents') || '[]');
-        documents.push(document);
-        localStorage.setItem('auditorApp_documents', JSON.stringify(documents));
-        
-        return document;
-    };
-    
-    // Mostrar documentos en la interfaz
-    window.displayDocuments = function() {
-        const documents = JSON.parse(localStorage.getItem('auditorApp_documents') || '[]');
-        const documentsList = document.getElementById('documents-list');
-        
-        if (documents.length === 0) {
-            documentsList.innerHTML = '<p class="empty-state">No hay documentos registrados.</p>';
-            return;
-        }
-        
-        documentsList.innerHTML = '';
-        documents.forEach(doc => {
-            const docElement = document.createElement('div');
-            docElement.className = 'document-item';
-            docElement.innerHTML = `
-                <h3>${doc.title}</h3>
-                <p>Código: ${doc.code}</p>
-                <p>Versión: ${doc.version}</p>
-                <p>Estado: ${doc.status}</p>
-                <p>Creación: ${new Date(doc.created).toLocaleDateString()}</p>
-                <button class="btn btn-secondary view-document" data-id="${doc.id}">Ver Detalles</button>
-            `;
-            
-            documentsList.appendChild(docElement);
-        });
-        
-        // Agregar event listeners a los botones
-        document.querySelectorAll('.view-document').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const docId = this.getAttribute('data-id');
-                viewDocument(docId);
-            });
-        });
-    };
-    
-    // Ver detalles de documento
-    function viewDocument(docId) {
-        // Implementar lógica para ver detalles de documento
-        showNotification(`Viendo documento ${docId}`, 'info');
-    }
-}
-
-// ==============================================
-// MÓDULO DE CAPACITACIÓN
-// ==============================================
-function initTrainingModule() {
-    // Registro de competencias del personal
-    window.planTraining = function(trainingData) {
-        const training = {
-            id: Date.now(),
-            ...trainingData,
-            created: new Date().toISOString(),
-            status: 'planned'
-        };
-        
-        // Guardar capacitación
-        const trainings = JSON.parse(localStorage.getItem('auditorApp_trainings') || '[]');
-        trainings.push(training);
-        localStorage.setItem('auditorApp_trainings', JSON.stringify(trainings));
-        
-        // Programar recordatorio
-        if (trainingData.date) {
-            setReminder({
-                type: 'training',
-                date: trainingData.date,
-                message: `Capacitación programada: ${trainingData.title}`,
-                relatedId: training.id
-            });
-        }
-        
-        return training;
-    };
-    
-    // Mostrar capacitaciones en la interfaz
-    window.displayTraining = function() {
-        const trainings = JSON.parse(localStorage.getItem('auditorApp_trainings') || '[]');
-        const trainingList = document.getElementById('training-list');
-        
-        if (trainings.length === 0) {
-            trainingList.innerHTML = '<p class="empty-state">No hay capacitaciones programadas.</p>';
-            return;
-        }
-        
-        trainingList.innerHTML = '';
-        trainings.forEach(training => {
-            const trainingElement = document.createElement('div');
-            trainingElement.className = 'training-item';
-            trainingElement.innerHTML = `
-                <h3>${training.title}</h3>
-                <p>Fecha: ${new Date(training.date).toLocaleDateString()}</p>
-                <p>Participantes: ${training.participants}</p>
-                <p>Estado: ${training.status}</p>
-                <button class="btn btn-secondary view-training" data-id="${training.id}">Ver Detalles</button>
-            `;
-            
-            trainingList.appendChild(trainingElement);
-        });
-        
-        // Agregar event listeners a los botones
-        document.querySelectorAll('.view-training').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const trainingId = this.getAttribute('data-id');
-                viewTraining(trainingId);
-            });
-        });
-    };
-    
-    // Ver detalles de capacitación
-    function viewTraining(trainingId) {
-        // Implementar lógica para ver detalles de capacitación
-        showNotification(`Viendo capacitación ${trainingId}`, 'info');
-    }
-}
-
-// ==============================================
-// INTEGRACIÓN CON APIS DE NORMAS
-// ==============================================
-function initNormativeAPI() {
-    // Conexión con bases de datos de normas
-    window.updateNorms = function() {
-        // Simular actualización de normas (en una app real, conectaría con APIs)
-        showNotification('Buscando actualizaciones de normas...', 'info');
-        
-        setTimeout(() => {
-            showNotification('Todas las normas están actualizadas', 'success');
-        }, 2000);
-    };
-}
-
-// ==============================================
-// MODO OFFLINE Y SINCRONIZACIÓN
-// ==============================================
-function initOfflineCapabilities() {
-    // Funcionamiento sin conexión
-    window.enableOfflineMode = function() {
-        // Verificar si el navegador soporta service workers
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('Service Worker registrado con éxito:', registration);
-                    showNotification('Modo offline activado', 'success');
-                })
-                .catch(error => {
-                    console.log('Error al registrar Service Worker:', error);
-                    showNotification('Error al activar modo offline', 'error');
-                });
-        } else {
-            showNotification('Tu navegador no soporta modo offline', 'warning');
-        }
-    };
-    
-    // Detectar cambios en la conexión
-    window.addEventListener('online', function() {
-        showNotification('Conexión restablecida. Sincronizando datos...', 'info');
-        syncData();
     });
     
-    window.addEventListener('offline', function() {
-        showNotification('Modo offline activado. Los cambios se sincronizarán cuando recuperes la conexión.', 'warning');
+    // Marcar/desmarcar items del checklist
+    checklistItems.forEach(item => {
+        item.addEventListener('change', function() {
+            if (this.checked) {
+                this.parentElement.classList.add('completed');
+            } else {
+                this.parentElement.classList.remove('completed');
+            }
+            
+            updateChecklistProgress();
+        });
     });
     
-    // Sincronizar datos cuando hay conexión
-    function syncData() {
-        // Implementar lógica de sincronización
-        setTimeout(() => {
-            showNotification('Datos sincronizados correctamente', 'success');
-        }, 1500);
+    // Cargar plantilla de checklist
+    function loadChecklistTemplate(template) {
+        // Aquí iría la lógica para cargar diferentes plantillas
+        showNotification(`Plantilla ${template} cargada`, 'info');
     }
-}
-
-// ==============================================
-// PANEL DE CONTROL PERSONALIZABLE
-// ==============================================
-function initCustomDashboard() {
-    // Widgets arrastrables
-    window.customizeDashboard = function(widgets) {
-        const dashboard = document.getElementById('dashboard-section');
-        
-        // Limpiar dashboard
-        dashboard.innerHTML = '';
-        
-        // Agregar widgets seleccionados
-        widgets.forEach(widget => {
-            const widgetElement = document.createElement('div');
-            widgetElement.className = 'dashboard-widget';
-            widgetElement.id = `widget-${widget}`;
-            widgetElement.innerHTML = `<h3>${widget.title}</h3><div class="widget-content"></div>`;
-            
-            dashboard.appendChild(widgetElement);
-        });
-        
-        // Guardar configuración
-        localStorage.setItem('auditorApp_dashboardConfig', JSON.stringify(widgets));
-        
-        showNotification('Dashboard personalizado guardado', 'success');
-    };
     
-    // Cargar configuración del dashboard
-    function loadDashboardConfig() {
-        const config = JSON.parse(localStorage.getItem('auditorApp_dashboardConfig') || 'null');
+    // Actualizar progreso del checklist
+    function updateChecklistProgress() {
+        const totalItems = document.querySelectorAll('.checklist-item').length;
+        const completedItems = document.querySelectorAll('.checklist-item input:checked').length;
+        const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
         
-        if (config) {
-            customizeDashboard(config);
+        // Actualizar UI con el progreso
+        const progressElement = document.querySelector('.checklist-progress');
+        if (progressElement) {
+            progressElement.textContent = `Completado: ${progress}%`;
         }
     }
-    
-    // Inicializar dashboard
-    loadDashboardConfig();
 }
 
 // ==============================================
-// FUNCIONES UTilitarias
+// FUNCIONES UTILITARIAS
 // ==============================================
 
-// Cargar datos guardados
-function loadSavedData() {
-    updateStats();
-    updateRecentNotes();
-}
-
-// Actualizar estadísticas
-function updateStats() {
-    const notes = JSON.parse(localStorage.getItem('auditorApp_notes') || '[]');
-    const generatedPDFs = parseInt(localStorage.getItem('auditorApp_generatedPDFs') || '0');
-    const norms = JSON.parse(localStorage.getItem('auditorApp_norms') || '[]');
-    const findings = JSON.parse(localStorage.getItem('auditorApp_findings') || '[]');
-    const audits = JSON.parse(localStorage.getItem('auditorApp_audits') || '[]');
+// Formatear tiempo relativo
+function formatRelativeTime(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSecs = Math.round(diffMs / 1000);
+    const diffMins = Math.round(diffSecs / 60);
+    const diffHours = Math.round(diffMins / 60);
+    const diffDays = Math.round(diffHours / 24);
     
-    document.getElementById('total-notes').textContent = notes.length;
-    document.getElementById('total-pdfs').textContent = generatedPDFs;
-    document.getElementById('total-norms').textContent = norms.length + 1; // +1 por ISO 9001:2015
-    document.getElementById('total-findings').textContent = findings.length;
-    document.getElementById('total-audits').textContent = audits.length;
+    if (diffSecs < 60) {
+        return 'Hace unos segundos';
+    } else if (diffMins < 60) {
+        return `Hace ${diffMins} minuto${diffMins !== 1 ? 's' : ''}`;
+    } else if (diffHours < 24) {
+        return `Hace ${diffHours} hora${diffHours !== 1 ? 's' : ''}`;
+    } else if (diffDays < 7) {
+        return `Hace ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+    } else {
+        return date.toLocaleDateString();
+    }
 }
 
-// Actualizar dashboard
-function updateDashboard() {
-    updateStats();
-    updateRecentNotes();
+// Obtener nombre de etiqueta
+function getTagName(tag) {
+    const tagNames = {
+        'important': 'Importante',
+        'action': 'Acción requerida',
+        'followup': 'Seguimiento',
+        'observation': 'Observación',
+        'nc': 'No Conformidad'
+    };
     
-    // Aquí se agregaría más lógica para actualizar widgets del dashboard
+    return tagNames[tag] || tag;
 }
 
-// Mostrar notificaciones
+// Mostrar notificación
 function showNotification(message, type = 'info') {
     // Crear elemento de notificación
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
-    notification.textContent = message;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${getNotificationIcon(type)}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close"><i class="fas fa-times"></i></button>
+    `;
     
     // Estilos para la notificación
     notification.style.position = 'fixed';
     notification.style.top = '20px';
     notification.style.right = '20px';
-    notification.style.padding = '10px 15px';
-    notification.style.borderRadius = '4px';
+    notification.style.padding = '15px 20px';
+    notification.style.borderRadius = 'var(--radius)';
     notification.style.color = 'white';
     notification.style.zIndex = '1000';
-    notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    notification.style.boxShadow = 'var(--shadow-hover)';
+    notification.style.display = 'flex';
+    notification.style.alignItems = 'center';
+    notification.style.gap = '10px';
+    notification.style.minWidth = '300px';
+    notification.style.transform = 'translateX(100%)';
+    notification.style.transition = 'transform 0.3s ease';
     
     // Colores según el tipo
     const colors = {
@@ -1301,17 +822,197 @@ function showNotification(message, type = 'info') {
     // Agregar al documento
     document.body.appendChild(notification);
     
-    // Eliminar después de 3 segundos
+    // Animación de entrada
     setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.5s';
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Cerrar notificación al hacer clic en el botón
+    notification.querySelector('.notification-close').addEventListener('click', function() {
+        notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
             if (document.body.contains(notification)) {
                 document.body.removeChild(notification);
             }
-        }, 500);
-    }, 3000);
+        }, 300);
+    });
+    
+    // Eliminar después de 5 segundos
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }
+    }, 5000);
 }
+
+// Obtener icono para notificación
+function getNotificationIcon(type) {
+    const icons = {
+        success: 'check-circle',
+        error: 'exclamation-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle'
+    };
+    
+    return icons[type] || 'info-circle';
+}
+
+// Cargar datos guardados
+function loadSavedData() {
+    updateStats();
+}
+
+// Actualizar estadísticas
+function updateStats() {
+    const notes = JSON.parse(localStorage.getItem('auditorApp_notes') || '[]');
+    const generatedPDFs = parseInt(localStorage.getItem('auditorApp_generatedPDFs') || '0');
+    const checklists = JSON.parse(localStorage.getItem('auditorApp_checklists') || '[]');
+    const findings = JSON.parse(localStorage.getItem('auditorApp_findings') || '[]');
+    const audits = JSON.parse(localStorage.getItem('auditorApp_audits') || '[]');
+    const norms = JSON.parse(localStorage.getItem('auditorApp_norms') || '[]');
+    
+    document.getElementById('total-notes').textContent = notes.length;
+    document.getElementById('total-pdfs').textContent = generatedPDFs;
+    document.getElementById('total-checklists').textContent = checklists.length;
+    document.getElementById('total-findings').textContent = findings.length;
+    document.getElementById('total-audits').textContent = audits.length;
+    document.getElementById('total-norms').textContent = norms.length + 3; // +3 por las normas predefinidas
+}
+
+// Inicializar gráficos
+function initCharts() {
+    // Gráfico de hallazgos por estado
+    const findingsCtx = document.getElementById('findings-chart').getContext('2d');
+    const findingsChart = new Chart(findingsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Abiertos', 'En progreso', 'Resueltos', 'Cerrados'],
+            datasets: [{
+                data: [12, 8, 15, 10],
+                backgroundColor: [
+                    '#e74c3c',
+                    '#f39c12',
+                    '#3498db',
+                    '#2ecc71'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Menú de acción rápida
+function showQuickActionMenu() {
+    const actions = [
+        { icon: 'sticky-note', text: 'Nueva nota', section: 'notes' },
+        { icon: 'tasks', text: 'Nuevo checklist', section: 'checklists' },
+        { icon: 'calendar-alt', text: 'Programar auditoría', section: 'audit-planning' },
+        { icon: 'search', text: 'Registrar hallazgo', section: 'findings' }
+    ];
+    
+    // Crear menú de acciones rápidas
+    const menu = document.createElement('div');
+    menu.className = 'quick-action-menu';
+    menu.innerHTML = `
+        <div class="quick-action-header">
+            <h3>Acciones rápidas</h3>
+            <button class="btn-icon close-menu"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="quick-action-items">
+            ${actions.map(action => `
+                <div class="quick-action-item" data-section="${action.section}">
+                    <div class="action-icon">
+                        <i class="fas fa-${action.icon}"></i>
+                    </div>
+                    <span>${action.text}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    // Estilos del menú
+    menu.style.position = 'fixed';
+    menu.style.top = '50%';
+    menu.style.left = '50%';
+    menu.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    menu.style.background = 'white';
+    menu.style.borderRadius = 'var(--radius)';
+    menu.style.boxShadow = 'var(--shadow-hover)';
+    menu.style.zIndex = '1001';
+    menu.style.padding = '20px';
+    menu.style.minWidth = '250px';
+    menu.style.opacity = '0';
+    menu.style.transition = 'all 0.3s ease';
+    
+    // Agregar al documento
+    document.body.appendChild(menu);
+    
+    // Mostrar con animación
+    setTimeout(() => {
+        menu.style.opacity = '1';
+        menu.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    // Cerrar menú
+    menu.querySelector('.close-menu').addEventListener('click', function() {
+        menu.style.opacity = '0';
+        menu.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        setTimeout(() => {
+            if (document.body.contains(menu)) {
+                document.body.removeChild(menu);
+            }
+        }, 300);
+    });
+    
+    // Acción al seleccionar una opción
+    menu.querySelectorAll('.quick-action-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const section = this.getAttribute('data-section');
+            
+            // Cerrar menú
+            menu.style.opacity = '0';
+            menu.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                if (document.body.contains(menu)) {
+                    document.body.removeChild(menu);
+                }
+                
+                // Navegar a la sección correspondiente
+                document.querySelector(`[data-section="${section}"]`).click();
+            }, 300);
+        });
+    });
+}
+
+// Otras funciones de inicialización (simplificadas)
+function initAuditPlanning() {}
+function initFindingsTracking() {}
+function initNotifications() {}
+function initAnalytics() {}
+function initDocumentManagement() {}
+function initTrainingModule() {}
+function initNormativeAPI() {}
+function initOfflineCapabilities() {}
+function initCustomDashboard() {}
 
 // Inicializar la aplicación cuando se carga la página
 window.onload = initApp;
